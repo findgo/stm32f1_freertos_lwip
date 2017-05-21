@@ -36,7 +36,8 @@ void netconf_init(void)
     struct ip_addr netmask;  
     struct ip_addr gw; 
     //sys_sem_t sem;
-    
+    uint8_t macaddress[6]={'A','R','M','N','E','T'};
+
     BSP_ConfigSPI1();
     // 调用LWIP初始化函数  
 #if NO_SYS
@@ -64,7 +65,7 @@ void netconf_init(void)
 //    inet_aton("192.168.1.1",&netmask);
 
 #endif
-    //  Set_MAC_Address(macaddress); //设置MAC地址
+    Set_MAC_Address(macaddress); //设置MAC地址
  
     // 初始化netcard 与LWIP的接口，参数为网络接口结构体、ip地址、  
     // 子网掩码、网关、网卡信息指针、初始化函数、输入函数  
@@ -122,7 +123,7 @@ void net_Periodic_Handle(void)
 void net_pkt_handle(void)
 {
   /* Read a received packet from the Ethernet buffers and send it to the lwIP for handling */
-    while(ETH_packet_getcount() != 0) 
+    while(ETH_GetRxPktSize() != 0) 
     {     
         ethernetif_input(&netif);
     }

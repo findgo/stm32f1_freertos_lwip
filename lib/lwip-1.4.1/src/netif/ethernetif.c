@@ -52,7 +52,7 @@
 #include <lwip/snmp.h>
 #include "netif/etharp.h"
 #include "netif/ppp_oe.h"
-
+#include "string.h"
 #include "ethernetif.h"
 /* Define those to better describe your network interface. */
 #define IFNAME0 'e'
@@ -69,8 +69,23 @@ struct ethernetif {
   /* Add whatever per-interface state that is needed here. */
 };
 
-/* Forward declarations. */
-//static void  ethernetif_input(struct netif *netif);
+static uint8_t MACaddr[6];
+
+/**
+ * Setting the MAC address.
+ *
+ * @param netif the already initialized lwip network interface structure
+ *        for this ethernetif
+ */
+void Set_MAC_Address(uint8_t* macadd)
+{
+    MACaddr[0] = macadd[0];
+    MACaddr[1] = macadd[1];
+    MACaddr[2] = macadd[2];
+    MACaddr[3] = macadd[3];
+    MACaddr[4] = macadd[4];
+    MACaddr[5] = macadd[5];
+}
 
 /**
  * In this function, the hardware should be initialized.
@@ -86,13 +101,13 @@ low_level_init(struct netif *netif)
   netif->hwaddr_len = ETHARP_HWADDR_LEN;
 
   /* set MAC hardware address */
-  netif->hwaddr[0] = 'A';
-  netif->hwaddr[1] = 'R';
-  netif->hwaddr[2] = 'M';
-  netif->hwaddr[3] = 'N';
-  netif->hwaddr[4] = 'E';
-  netif->hwaddr[5] = 'T';
-  
+  netif->hwaddr[0] =  MACaddr[0];
+  netif->hwaddr[1] =  MACaddr[1];
+  netif->hwaddr[2] =  MACaddr[2];
+  netif->hwaddr[3] =  MACaddr[3];
+  netif->hwaddr[4] =  MACaddr[4];
+  netif->hwaddr[5] =  MACaddr[5];
+
   /* maximum transfer unit */
   netif->mtu = 1500;
   
@@ -273,7 +288,16 @@ ethernetif_input(struct netif *netif)
 err_t
 ethernetif_init(struct netif *netif)
 {
-  LWIP_ASSERT("netif != NULL", (netif != NULL));
+    struct ethernetif *ethernetif;
+
+    LWIP_ASSERT("netif != NULL", (netif != NULL));
+    
+    ethernetif = mem_malloc(sizeof(struct ethernetif));
+    if (ethernetif == NULL)
+    {
+        LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_init: out of memory\n"));
+        return ERR_MEM;
+    }
     
 #if LWIP_NETIF_HOSTNAME
   /* Initialize interface hostname */
@@ -285,8 +309,9 @@ ethernetif_init(struct netif *netif)
    * The last argument should be replaced with your link speed, in units
    * of bits per second.
    */
-  NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, LINK_SPEED_OF_YOUR_NETIF_IN_BPS);
+  NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, 100000000);
 
+  netif->state = ethernetif;
   netif->name[0] = IFNAME0;
   netif->name[1] = IFNAME1;
   /* We directly use etharp_output() here to save a function call.
@@ -295,7 +320,9 @@ ethernetif_init(struct netif *netif)
    * is available...) */
   netif->output = etharp_output;
   netif->linkoutput = low_level_output;
-  
+
+  ethernetif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
+
   /* initialize the hardware */
   low_level_init(netif);
 
