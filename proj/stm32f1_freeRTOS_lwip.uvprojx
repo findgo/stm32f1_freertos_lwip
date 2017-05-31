@@ -392,6 +392,21 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>driver</GroupName>
+          <Files>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\dirver\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\dirver\serial.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>freeRTOS</GroupName>
           <Files>
             <File>
